@@ -1,15 +1,24 @@
 const express = require('express');
+
 const app = express();
  
 const cors = require('cors');
-app.use(cors({ optionSuccessStatus: 200 }));  
+const routes = require('./routes');
 
-app.get("/", (req, res) => {
-    res.sendFile(__dirname + '/views/index.html');
+app.use(cors({ optionSuccessStatus: 200 })); 
+app.use('/api', routes);
+
+app.use((req, res, next) => {
+    const err = new Error('Not Found');
+    err.status = 404;
+    next(err);
 });
 
-app.get("/api/hello", (req, res) => {
-    res.json({ greeting: 'Hello API' });
+app.use((err, req, res, next) => {
+    err.message = err.message || 'Internal Server Error';
+    console.log('Error!', err); 
+    res.status(err.status || 500);
+    res.json({ error: err.message }); 
 });
 
 // listen for requests 
